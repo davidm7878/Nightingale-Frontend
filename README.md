@@ -1,8 +1,7 @@
 # Frontend Template
 
 You can use this repository as a template for your frontend. It provides a very simple
-React Router layout with a navbar, an `AuthContext` with login and register pages, and an
-`ApiContext` with two custom hooks: `useQuery` and `useMutation`.
+React Router layout with a navbar and an `AuthContext` with login and register pages.
 
 ## Usage
 
