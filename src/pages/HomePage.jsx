@@ -62,35 +62,31 @@ export default function HomePage() {
         )}
 
         <div className="posts-section">
-          <h2 className="section-title">Community Posts</h2>
-
           {loading ? (
             <div className="loading">Loading posts...</div>
-          ) : posts.length === 0 ? (
-            <div className="empty-state">
-              <p>No posts yet. Be the first to share!</p>
-            </div>
           ) : (
-            <div className="posts-grid">
-              {posts.map((post) => (
-                <div key={post.id} className="post-card">
-                  <div className="post-header">
-                    <div className="post-avatar">
-                      {post.username?.[0]?.toUpperCase() || "U"}
+            posts.length > 0 && (
+              <div className="posts-grid">
+                {posts.map((post) => (
+                  <div key={post.id} className="post-card">
+                    <div className="post-header">
+                      <div className="post-avatar">
+                        {post.username?.[0]?.toUpperCase() || "U"}
+                      </div>
+                      <div className="post-meta">
+                        <h3>{post.username || "Anonymous"}</h3>
+                        <p className="post-date">
+                          {new Date(post.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
-                    <div className="post-meta">
-                      <h3>{post.username || "Anonymous"}</h3>
-                      <p className="post-date">
-                        {new Date(post.created_at).toLocaleDateString()}
-                      </p>
+                    <div className="post-body">
+                      <p>{post.body}</p>
                     </div>
                   </div>
-                  <div className="post-body">
-                    <p>{post.body}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )
           )}
         </div>
       </div>

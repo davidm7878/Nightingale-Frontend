@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router";
 import {
   searchHospitalsByCityState,
   searchHospitalsByName,
@@ -16,6 +17,18 @@ export default function HospitalSearch() {
 
   async function handleSearch(e) {
     e.preventDefault();
+
+    // Validate that at least one search field is filled
+    if (searchType === "location" && !city && !state) {
+      alert("Please enter a city and/or state to search");
+      return;
+    }
+
+    if (searchType === "name" && !name.trim()) {
+      alert("Please enter a hospital name to search");
+      return;
+    }
+
     setLoading(true);
     setSearched(true);
 
@@ -126,35 +139,41 @@ export default function HospitalSearch() {
             ) : (
               <div className="results-grid">
                 {results.map((hospital) => (
-                  <div key={hospital.cms_id} className="hospital-card">
-                    <div className="hospital-header">
-                      <h3>{hospital.name}</h3>
-                      <div className="hospital-rating">
-                        {getRatingStars(hospital.rating)}
+                  <Link
+                    key={hospital.cms_id}
+                    to={`/hospital/${hospital.cms_id}`}
+                    className="hospital-card-link"
+                  >
+                    <div className="hospital-card">
+                      <div className="hospital-header">
+                        <h3>{hospital.name}</h3>
+                        <div className="hospital-rating">
+                          {getRatingStars(hospital.rating)}
+                        </div>
+                      </div>
+                      <div className="hospital-details">
+                        <p className="address">
+                          📍 {hospital.street}, {hospital.city},{" "}
+                          {hospital.state} {hospital.zip_code}
+                        </p>
+                        {hospital.phone && (
+                          <p className="phone">📞 {hospital.phone}</p>
+                        )}
+                        <div className="hospital-meta">
+                          {hospital.hospital_type && (
+                            <span className="badge">
+                              {hospital.hospital_type}
+                            </span>
+                          )}
+                          {hospital.ownership && (
+                            <span className="badge badge-secondary">
+                              {hospital.ownership}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <div className="hospital-details">
-                      <p className="address">
-                        📍 {hospital.street}, {hospital.city}, {hospital.state}{" "}
-                        {hospital.zip_code}
-                      </p>
-                      {hospital.phone && (
-                        <p className="phone">📞 {hospital.phone}</p>
-                      )}
-                      <div className="hospital-meta">
-                        {hospital.hospital_type && (
-                          <span className="badge">
-                            {hospital.hospital_type}
-                          </span>
-                        )}
-                        {hospital.ownership && (
-                          <span className="badge badge-secondary">
-                            {hospital.ownership}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}

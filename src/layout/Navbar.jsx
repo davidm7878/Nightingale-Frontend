@@ -15,46 +15,52 @@ export default function Navbar() {
 
         <nav className="navbar-nav">
           <NavLink
-            to="/"
-            className={({ isActive }) =>
-              isActive ? "nav-link active" : "nav-link"
-            }
-          >
-            Home
-          </NavLink>
-          <NavLink
             to="/search"
             className={({ isActive }) =>
-              isActive ? "nav-link active" : "nav-link"
+              isActive ? "nav-link search-icon active" : "nav-link search-icon"
             }
           >
-            Find Hospitals
+            ⌕
           </NavLink>
 
-          {token ? (
-            <>
-              <NavLink
-                to="/profile"
-                className={({ isActive }) =>
-                  isActive ? "nav-link active" : "nav-link"
-                }
-              >
-                Profile
-              </NavLink>
-              <button onClick={logout} className="btn btn-secondary">
-                Log out
-              </button>
-            </>
-          ) : (
-            <>
-              <NavLink to="/login" className="btn btn-secondary">
-                Log in
-              </NavLink>
-              <NavLink to="/register" className="btn btn-primary">
-                Sign up
-              </NavLink>
-            </>
-          )}
+          <div className="navbar-dropdown">
+            <button className="dropdown-trigger">
+              {token ? (
+                <>
+                  <span className="user-avatar">
+                    {user?.email?.[0]?.toUpperCase() || "U"}
+                  </span>
+                  <span className="dropdown-arrow">▼</span>
+                </>
+              ) : (
+                <>
+                  <span>Menu</span>
+                  <span className="dropdown-arrow">▼</span>
+                </>
+              )}
+            </button>
+            <div className="dropdown-menu">
+              {token ? (
+                <>
+                  <NavLink to="/profile" className="dropdown-item">
+                    👤 Profile
+                  </NavLink>
+                  <button onClick={logout} className="dropdown-item">
+                    🚪 Log out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <NavLink to="/login" className="dropdown-item">
+                    🔑 Log in
+                  </NavLink>
+                  <NavLink to="/register" className="dropdown-item">
+                    ✨ Register
+                  </NavLink>
+                </>
+              )}
+            </div>
+          </div>
         </nav>
       </div>
     </header>
