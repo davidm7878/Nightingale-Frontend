@@ -50,17 +50,16 @@ export default function HospitalSearch() {
 
   return (
     <div className="hospital-search-page">
-      <div className="search-hero">
-        <div className="container">
-          <h1>Find Healthcare Facilities</h1>
-          <p className="subtitle">
-            Search thousands of hospitals and medical centers nationwide
-          </p>
-        </div>
-      </div>
-
       <div className="container">
         <div className="search-card">
+          <div className="search-hero">
+            <div className="container">
+              <h1>Find Healthcare Facilities</h1>
+              <p className="subtitle">
+                Search thousands of hospitals and medical centers nationwide
+              </p>
+            </div>
+          </div>
           <div className="search-tabs">
             <button
               className={`tab ${searchType === "location" ? "active" : ""}`}

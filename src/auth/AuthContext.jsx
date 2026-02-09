@@ -5,15 +5,15 @@ const API = import.meta.env.VITE_API || "http://localhost:3000";
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(sessionStorage.getItem("token"));
+  const [token, setToken] = useState(localStorage.getItem("token"));
   const [user, setUser] = useState(null);
 
   useEffect(() => {
     if (token) {
-      sessionStorage.setItem("token", token);
+      localStorage.setItem("token", token);
       fetchUser();
     } else {
-      sessionStorage.removeItem("token");
+      localStorage.removeItem("token");
       setUser(null);
     }
   }, [token]);
@@ -56,7 +56,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     setToken(null);
-    sessionStorage.removeItem("token");
+    localStorage.removeItem("token");
   };
 
   const value = { token, user, register, login, logout };

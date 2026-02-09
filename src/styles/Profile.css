@@ -47,7 +47,9 @@
   grid-template-columns: 2fr 1fr;
   gap: 32px;
 }
-card);
+
+.profile-card {
+  background: white;
   border-radius: var(--radius);
   padding: 20px;
   box-shadow: var(--shadow-sm);
