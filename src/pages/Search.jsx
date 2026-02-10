@@ -18,7 +18,7 @@ export default function HospitalSearch() {
   async function handleSearch(e) {
     e.preventDefault();
 
-    // Validate that at least one search field is filled
+    // Make sure that at least one search field is filled
     if (searchType === "location" && !city && !state) {
       alert("Please enter a city and/or state to search");
       return;

@@ -1,6 +1,7 @@
 import { NavLink } from "react-router";
 import { useAuth } from "../auth/AuthContext";
 import "../styles/Navbar.css";
+import logo from "../img/nightingale_logo copy.jpeg";
 
 export default function Navbar() {
   const { token, user, logout } = useAuth();
@@ -9,7 +10,7 @@ export default function Navbar() {
     <header className="navbar">
       <div className="navbar-container">
         <NavLink className="navbar-brand" to="/">
-          <span className="brand-icon">🏥</span>
+          <img src={logo} alt="Nightingale Logo" className="brand-logo" />
           <span className="brand-name">Nightingale</span>
         </NavLink>
 
