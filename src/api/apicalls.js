@@ -62,6 +62,42 @@ export async function searchHospitalsByName(name, limit = 50) {
   }
 }
 
+/**
+ * Search hospitals by zip code via backend
+ * @param {string} zipcode - 5-digit zip code
+ * @param {string} state - State abbreviation (optional, for fallback search)
+ * @param {number} limit - Maximum number of results (default: 100)
+ * @returns {Promise<Array>} Array of hospital objects
+ */
+export async function searchHospitalsByZipcode(
+  zipcode,
+  state = null,
+  limit = 100,
+) {
+  try {
+    const params = new URLSearchParams();
+    params.append("zipcode", zipcode);
+    if (state) params.append("state", state);
+    params.append("limit", limit.toString());
+
+    console.log("Zipcode search request:", `${API}/hospitals/search?${params}`);
+
+    const response = await fetch(`${API}/hospitals/search?${params}`);
+
+    if (!response.ok) {
+      throw new Error(`Backend API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("Zipcode search results:", data.length, "hospitals found");
+
+    return data;
+  } catch (error) {
+    console.error("Error searching hospitals by zipcode:", error);
+    return [];
+  }
+}
+
 // Posts API Functions
 export async function getAllPosts() {
   try {

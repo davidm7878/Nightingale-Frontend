@@ -80,6 +80,21 @@
   gap: 24px;
 }
 
+.location-actions {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.location-actions .btn {
+  padding: 10px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
