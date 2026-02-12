@@ -119,6 +119,120 @@ export async function deletePost(postId, token) {
   }
 }
 
+// Like/Dislike API Functions
+export async function likePost(postId, token) {
+  try {
+    const response = await fetch(`${API}/posts/${postId}/like`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw new Error("Failed to like post");
+    return await response.json();
+  } catch (error) {
+    console.error("Error liking post:", error);
+    return null;
+  }
+}
+
+export async function unlikePost(postId, token) {
+  try {
+    const response = await fetch(`${API}/posts/${postId}/like`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw new Error("Failed to unlike post");
+    return await response.json();
+  } catch (error) {
+    console.error("Error unliking post:", error);
+    return null;
+  }
+}
+
+export async function dislikePost(postId, token) {
+  try {
+    const response = await fetch(`${API}/posts/${postId}/dislike`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw new Error("Failed to dislike post");
+    return await response.json();
+  } catch (error) {
+    console.error("Error disliking post:", error);
+    return null;
+  }
+}
+
+export async function undislikePost(postId, token) {
+  try {
+    const response = await fetch(`${API}/posts/${postId}/dislike`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw new Error("Failed to remove dislike");
+    return await response.json();
+  } catch (error) {
+    console.error("Error removing dislike:", error);
+    return null;
+  }
+}
+
+// Comment API Functions
+export async function getCommentsByPostId(postId) {
+  try {
+    const response = await fetch(`${API}/posts/${postId}/comments`);
+    if (!response.ok) throw new Error("Failed to fetch comments");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching comments:", error);
+    return [];
+  }
+}
+
+export async function createComment(postId, body, token) {
+  try {
+    const response = await fetch(`${API}/posts/${postId}/comments`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ body }),
+    });
+    if (!response.ok) throw new Error("Failed to create comment");
+    return await response.json();
+  } catch (error) {
+    console.error("Error creating comment:", error);
+    return null;
+  }
+}
+
+export async function deleteComment(postId, commentId, token) {
+  try {
+    const response = await fetch(
+      `${API}/posts/${postId}/comments/${commentId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    if (!response.ok) throw new Error("Failed to delete comment");
+    return await response.json();
+  } catch (error) {
+    console.error("Error deleting comment:", error);
+    return null;
+  }
+}
+
 // User API Functions
 export async function getUserProfile(userId) {
   try {

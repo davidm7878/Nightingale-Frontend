@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext";
+import { useParams } from "react-router";
 import {
   getPostsByUserId,
   getUserProfile,
   updateUserProfile,
 } from "../api/apicalls";
+import { dummyUsers, dummyPosts } from "../data/dummyData";
 import "../styles/Profile.css";
 
 export default function Profile() {
   const { user, token } = useAuth();
+  const { userId } = useParams();
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,17 +21,44 @@ export default function Profile() {
     resume: "",
   });
 
+  const isOwnProfile = !userId || (user && userId === String(user.id));
+
   useEffect(() => {
-    if (user) {
-      fetchProfileData();
-    }
-  }, [user]);
+    fetchProfileData();
+  }, [userId, user]);
 
   async function fetchProfileData() {
     setLoading(true);
+    const targetUserId = userId || user?.id;
+
+    if (!targetUserId) {
+      setLoading(false);
+      return;
+    }
+
+    // For dummy users, use dummy data
+    if (userId && parseInt(userId) <= 6) {
+      const dummyUser = dummyUsers.find((u) => u.id === parseInt(userId));
+      const userPosts = dummyPosts.filter(
+        (p) => p.user_id === parseInt(userId),
+      );
+
+      if (dummyUser) {
+        setProfile({
+          id: dummyUser.id,
+          username: dummyUser.username,
+          name: dummyUser.name,
+          bio: `${dummyUser.specialty} specialist in ${dummyUser.location}`,
+        });
+        setPosts(userPosts);
+        setLoading(false);
+        return;
+      }
+    }
+
     const [profileData, userPosts] = await Promise.all([
-      getUserProfile(user.id),
-      getPostsByUserId(user.id),
+      getUserProfile(targetUserId),
+      getPostsByUserId(targetUserId),
     ]);
 
     setProfile(profileData);
@@ -75,11 +105,13 @@ export default function Profile() {
         <div className="container">
           <div className="profile-header">
             <div className="profile-avatar-large">
-              {user.username[0].toUpperCase()}
+              {profile?.username?.[0]?.toUpperCase() ||
+                profile?.name?.[0]?.toUpperCase() ||
+                "U"}
             </div>
             <div className="profile-info">
-              <h1>{user.username}</h1>
-              <p className="profile-email">{profile?.email}</p>
+              <h1>{profile?.name || profile?.username || "User"}</h1>
+              <p className="profile-email">{profile?.email || profile?.bio}</p>
             </div>
           </div>
         </div>
@@ -91,7 +123,7 @@ export default function Profile() {
             <div className="profile-card">
               <div className="card-header">
                 <h2>About</h2>
-                {!editing && (
+                {!editing && isOwnProfile && (
                   <button
                     onClick={() => setEditing(true)}
                     className="btn btn-secondary"
@@ -101,7 +133,7 @@ export default function Profile() {
                 )}
               </div>
 
-              {editing ? (
+              {editing && isOwnProfile ? (
                 <form onSubmit={handleUpdateProfile} className="edit-form">
                   <div className="form-group">
                     <label htmlFor="bio">Bio</label>

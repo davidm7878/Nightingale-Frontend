@@ -33,9 +33,10 @@
 }
 
 .brand-logo {
-  height: 40px;
+  height: 52px;
   width: auto;
   object-fit: contain;
+  margin-right: 8px;
 }
 
 .brand-icon {
@@ -43,7 +44,13 @@
 }
 
 .brand-name {
-  color: var(--color-primary);
+  color: #8b5cf6;
+  font-size: 2em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.caduceus {
+  font-size: 1.2em;
 }
 
 .navbar-nav {
