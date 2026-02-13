@@ -273,7 +273,7 @@ export default function HospitalSearch() {
                   >
                     {locationLoading
                       ? "Getting location..."
-                      : "📍 Use My Location"}
+                      : "Use My Location"}
                   </button>
                 </div>
                 <div className="form-row">

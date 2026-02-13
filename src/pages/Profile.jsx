@@ -74,10 +74,16 @@ export default function Profile() {
 
   async function handleUpdateProfile(e) {
     e.preventDefault();
+    console.log("Updating profile with data:", formData);
+    console.log("Token:", token);
     const updated = await updateUserProfile(formData, token);
+    console.log("Update response:", updated);
     if (updated) {
       setProfile(updated);
       setEditing(false);
+      alert("Profile updated successfully!");
+    } else {
+      alert("Failed to update profile. Check the console for errors.");
     }
   }
 

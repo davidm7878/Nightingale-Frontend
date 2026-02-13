@@ -43,19 +43,19 @@ export default function Navbar() {
               {token ? (
                 <>
                   <NavLink to="/profile" className="dropdown-item">
-                    👤 Profile
+                    Profile
                   </NavLink>
                   <button onClick={logout} className="dropdown-item">
-                    🚪 Log out
+                    Log out
                   </button>
                 </>
               ) : (
                 <>
                   <NavLink to="/login" className="dropdown-item">
-                    🔑 Log in
+                    Log in
                   </NavLink>
                   <NavLink to="/register" className="dropdown-item">
-                    ✨ Register
+                    Register
                   </NavLink>
                 </>
               )}
