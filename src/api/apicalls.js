@@ -291,10 +291,222 @@ export async function updateUserProfile(userData, token) {
       },
       body: JSON.stringify(userData),
     });
-    if (!response.ok) throw new Error("Failed to update profile");
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Server error:", errorText);
+      throw new Error(errorText || "Failed to update profile");
+    }
+
     return await response.json();
   } catch (error) {
     console.error("Error updating profile:", error);
+    throw error;
+  }
+}
+
+// Rating API Functions
+export async function getRatingsByHospitalId(hospitalId) {
+  try {
+    const response = await fetch(`${API}/ratings/hospital/${hospitalId}`);
+    if (!response.ok) throw new Error("Failed to fetch ratings");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching ratings:", error);
+    return { ratings: [], average: 0, total: 0 };
+  }
+}
+
+export async function createRating(hospitalId, ratingValue, token) {
+  try {
+    const response = await fetch(`${API}/ratings`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        hospital_id: hospitalId,
+        rating_value: ratingValue,
+      }),
+    });
+    if (!response.ok) throw new Error("Failed to create rating");
+    return await response.json();
+  } catch (error) {
+    console.error("Error creating rating:", error);
     return null;
+  }
+}
+
+// Review API Functions
+export async function getReviewsByHospitalId(hospitalId) {
+  try {
+    const response = await fetch(`${API}/reviews/hospital/${hospitalId}`);
+    if (!response.ok) throw new Error("Failed to fetch reviews");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    return [];
+  }
+}
+
+export async function createReview(hospitalId, body, token) {
+  try {
+    const response = await fetch(`${API}/reviews`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ hospital_id: hospitalId, body }),
+    });
+    if (!response.ok) throw new Error("Failed to create review");
+    return await response.json();
+  } catch (error) {
+    console.error("Error creating review:", error);
+    return null;
+  }
+}
+
+export async function deleteReview(reviewId, token) {
+  try {
+    const response = await fetch(`${API}/reviews/${reviewId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw new Error("Failed to delete review");
+    return await response.json();
+  } catch (error) {
+    console.error("Error deleting review:", error);
+    return null;
+  }
+}
+
+// User Follow API Functions
+export async function followUser(userId, token) {
+  try {
+    const response = await fetch(`${API}/users/${userId}/follow`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw new Error("Failed to follow user");
+    return await response.json();
+  } catch (error) {
+    console.error("Error following user:", error);
+    return null;
+  }
+}
+
+export async function unfollowUser(userId, token) {
+  try {
+    const response = await fetch(`${API}/users/${userId}/follow`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw new Error("Failed to unfollow user");
+    return await response.json();
+  } catch (error) {
+    console.error("Error unfollowing user:", error);
+    return null;
+  }
+}
+
+export async function isFollowingUser(userId, token) {
+  try {
+    const response = await fetch(`${API}/users/${userId}/is-following`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw new Error("Failed to check follow status");
+    const data = await response.json();
+    return data.isFollowing;
+  } catch (error) {
+    console.error("Error checking follow status:", error);
+    return false;
+  }
+}
+
+export async function getFollowingUsers(userId) {
+  try {
+    const response = await fetch(`${API}/users/${userId}/following`);
+    if (!response.ok) throw new Error("Failed to fetch following users");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching following users:", error);
+    return [];
+  }
+}
+
+// Hospital Follow API Functions
+export async function followHospital(hospitalId, token) {
+  try {
+    const response = await fetch(`${API}/hospitals/${hospitalId}/follow`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw new Error("Failed to follow hospital");
+    return await response.json();
+  } catch (error) {
+    console.error("Error following hospital:", error);
+    return null;
+  }
+}
+
+export async function unfollowHospital(hospitalId, token) {
+  try {
+    const response = await fetch(`${API}/hospitals/${hospitalId}/follow`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw new Error("Failed to unfollow hospital");
+    return await response.json();
+  } catch (error) {
+    console.error("Error unfollowing hospital:", error);
+    return null;
+  }
+}
+
+export async function isFollowingHospital(hospitalId, token) {
+  try {
+    const response = await fetch(
+      `${API}/hospitals/${hospitalId}/is-following`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    if (!response.ok) throw new Error("Failed to check follow status");
+    const data = await response.json();
+    return data.isFollowing;
+  } catch (error) {
+    console.error("Error checking follow status:", error);
+    return false;
+  }
+}
+
+export async function getFollowedHospitals(token) {
+  try {
+    const response = await fetch(`${API}/hospitals/following`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw new Error("Failed to fetch followed hospitals");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching followed hospitals:", error);
+    return [];
   }
 }

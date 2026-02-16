@@ -6,6 +6,7 @@ import HomePage from "./pages/HomePage";
 import Search from "./pages/Search";
 import HospitalDetails from "./pages/HospitalDetails";
 import Profile from "./pages/Profile";
+import Following from "./pages/Following";
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="/hospital/:id" element={<HospitalDetails />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/:userId" element={<Profile />} />
+        <Route path="/following" element={<Following />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
       </Route>

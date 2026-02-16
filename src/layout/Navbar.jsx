@@ -27,9 +27,17 @@ export default function Navbar() {
             <button className="dropdown-trigger">
               {token ? (
                 <>
-                  <span className="user-avatar">
-                    {user?.email?.[0]?.toUpperCase() || "U"}
-                  </span>
+                  {user?.profile_picture ? (
+                    <img
+                      src={user.profile_picture}
+                      alt="Profile"
+                      className="user-avatar-img"
+                    />
+                  ) : (
+                    <span className="user-avatar">
+                      {user?.username?.[0]?.toUpperCase() || "U"}
+                    </span>
+                  )}
                   <span className="dropdown-arrow">▼</span>
                 </>
               ) : (

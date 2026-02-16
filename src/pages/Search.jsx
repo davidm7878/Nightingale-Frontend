@@ -357,9 +357,6 @@ export default function HospitalSearch() {
                     <div className="hospital-card">
                       <div className="hospital-header">
                         <h3>{hospital.name}</h3>
-                        <div className="hospital-rating">
-                          {getRatingStars(hospital.rating)}
-                        </div>
                       </div>
                       <div className="hospital-details">
                         <p className="address">

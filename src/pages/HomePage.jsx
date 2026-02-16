@@ -3,6 +3,7 @@ import { useAuth } from "../auth/AuthContext";
 import {
   getAllPosts,
   createPost,
+  deletePost,
   likePost,
   unlikePost,
   dislikePost,
@@ -21,6 +22,8 @@ export default function HomePage() {
   const [expandedComments, setExpandedComments] = useState({});
   const [comments, setComments] = useState({});
   const [commentInputs, setCommentInputs] = useState({});
+  const [userLikes, setUserLikes] = useState({});
+  const [userDislikes, setUserDislikes] = useState({});
   const { user, token } = useAuth();
 
   useEffect(() => {
@@ -34,8 +37,13 @@ export default function HomePage() {
   async function fetchPosts() {
     setLoading(true);
     const data = await getAllPosts();
-    // Use dummy data if API returns empty or fails
-    setPosts(data && data.length > 0 ? data : dummyPosts);
+    // Use dummy data if API returns empty or fails, but mark them as dummy
+    if (data && data.length > 0) {
+      setPosts(data);
+    } else {
+      // Mark dummy posts to prevent API calls
+      setPosts(dummyPosts.map((post) => ({ ...post, isDummy: true })));
+    }
     setLoading(false);
   }
 
@@ -66,15 +74,75 @@ export default function HomePage() {
   async function handleLike(postId) {
     if (!token) return;
 
+    console.log("handleLike called for post", postId);
+
+    // Find the post to check if it's a dummy
+    const post = posts.find((p) => p.id === postId);
+    if (post?.isDummy) {
+      console.log("Dummy post - handling locally only");
+      // Handle dummy posts locally without API calls
+      if (userLikes[postId]) {
+        // Unlike
+        setPosts((prevPosts) =>
+          prevPosts.map((p) =>
+            p.id === postId
+              ? { ...p, likes: Math.max((p.likes || 0) - 1, 0) }
+              : p,
+          ),
+        );
+        setUserLikes((prev) => ({ ...prev, [postId]: false }));
+      } else {
+        // Like
+        const wasDisliked = userDislikes[postId];
+        setPosts((prevPosts) =>
+          prevPosts.map((p) =>
+            p.id === postId
+              ? {
+                  ...p,
+                  likes: (p.likes || 0) + 1,
+                  dislikes: wasDisliked
+                    ? Math.max((p.dislikes || 0) - 1, 0)
+                    : p.dislikes || 0,
+                }
+              : p,
+          ),
+        );
+        setUserLikes((prev) => ({ ...prev, [postId]: true }));
+        setUserDislikes((prev) => ({ ...prev, [postId]: false }));
+      }
+      return;
+    }
+
+    console.log("Current userLikes state:", userLikes);
+    console.log("Is post already liked?", userLikes[postId]);
+
+    // If user already liked, unlike it
+    if (userLikes[postId]) {
+      console.log("Already liked, calling handleUnlike");
+      handleUnlike(postId);
+      return;
+    }
+
+    // If user disliked, remove dislike first
+    const wasDisliked = userDislikes[postId];
+    console.log("Was disliked?", wasDisliked);
+
     const result = await likePost(postId, token);
+    console.log("API result:", result);
     if (result) {
       setPosts((prevPosts) =>
-        prevPosts.map((post) =>
-          post.id === postId
-            ? { ...post, likes: result.likes, dislikes: result.dislikes }
-            : post,
+        prevPosts.map((p) =>
+          p.id === postId
+            ? { ...p, likes: result.likes, dislikes: result.dislikes }
+            : p,
         ),
       );
+      setUserLikes((prev) => {
+        const newState = { ...prev, [postId]: true };
+        console.log("Setting userLikes to:", newState);
+        return newState;
+      });
+      setUserDislikes((prev) => ({ ...prev, [postId]: false }));
     }
   }
 
@@ -90,21 +158,79 @@ export default function HomePage() {
             : post,
         ),
       );
+      setUserLikes((prev) => ({ ...prev, [postId]: false }));
+    } else {
+      // If API fails (dummy post), update locally
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post.id === postId
+            ? { ...post, likes: Math.max((post.likes || 0) - 1, 0) }
+            : post,
+        ),
+      );
+      setUserLikes((prev) => ({ ...prev, [postId]: false }));
     }
   }
 
   async function handleDislike(postId) {
     if (!token) return;
 
+    // Find the post to check if it's a dummy
+    const post = posts.find((p) => p.id === postId);
+    if (post?.isDummy) {
+      // Handle dummy posts locally without API calls
+      if (userDislikes[postId]) {
+        // Undislike
+        setPosts((prevPosts) =>
+          prevPosts.map((p) =>
+            p.id === postId
+              ? { ...p, dislikes: Math.max((p.dislikes || 0) - 1, 0) }
+              : p,
+          ),
+        );
+        setUserDislikes((prev) => ({ ...prev, [postId]: false }));
+      } else {
+        // Dislike
+        const wasLiked = userLikes[postId];
+        setPosts((prevPosts) =>
+          prevPosts.map((p) =>
+            p.id === postId
+              ? {
+                  ...p,
+                  dislikes: (p.dislikes || 0) + 1,
+                  likes: wasLiked
+                    ? Math.max((p.likes || 0) - 1, 0)
+                    : p.likes || 0,
+                }
+              : p,
+          ),
+        );
+        setUserDislikes((prev) => ({ ...prev, [postId]: true }));
+        setUserLikes((prev) => ({ ...prev, [postId]: false }));
+      }
+      return;
+    }
+
+    // If user already disliked, undislike it
+    if (userDislikes[postId]) {
+      handleUndislike(postId);
+      return;
+    }
+
+    // If user liked, remove like first
+    const wasLiked = userLikes[postId];
+
     const result = await dislikePost(postId, token);
     if (result) {
       setPosts((prevPosts) =>
-        prevPosts.map((post) =>
-          post.id === postId
-            ? { ...post, likes: result.likes, dislikes: result.dislikes }
-            : post,
+        prevPosts.map((p) =>
+          p.id === postId
+            ? { ...p, likes: result.likes, dislikes: result.dislikes }
+            : p,
         ),
       );
+      setUserDislikes((prev) => ({ ...prev, [postId]: true }));
+      setUserLikes((prev) => ({ ...prev, [postId]: false }));
     }
   }
 
@@ -120,6 +246,30 @@ export default function HomePage() {
             : post,
         ),
       );
+      setUserDislikes((prev) => ({ ...prev, [postId]: false }));
+    } else {
+      // If API fails (dummy post), update locally
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post.id === postId
+            ? { ...post, dislikes: Math.max((post.dislikes || 0) - 1, 0) }
+            : post,
+        ),
+      );
+      setUserDislikes((prev) => ({ ...prev, [postId]: false }));
+    }
+  }
+
+  async function handleDeletePost(postId) {
+    if (!token) return;
+
+    if (!confirm("Are you sure you want to delete this post?")) return;
+
+    const success = await deletePost(postId, token);
+    if (success) {
+      setPosts((prevPosts) => prevPosts.filter((p) => p.id !== postId));
+    } else {
+      alert("Failed to delete post. Please try again.");
     }
   }
 
@@ -298,13 +448,46 @@ export default function HomePage() {
               <div className="posts-grid">
                 {posts.map((post) => (
                   <div key={post.id} className="post-card">
+                    {user && user.id === post.user_id && (
+                      <button
+                        className="delete-btn-corner"
+                        onClick={() => handleDeletePost(post.id)}
+                        title="Delete post"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M3 6h18" />
+                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                          <line x1="10" y1="11" x2="10" y2="17" />
+                          <line x1="14" y1="11" x2="14" y2="17" />
+                        </svg>
+                      </button>
+                    )}
                     <Link
                       to={`/profile/${post.user_id}`}
                       className="post-header-link"
                     >
                       <div className="post-header">
                         <div className="post-avatar">
-                          {post.username?.[0]?.toUpperCase() || "U"}
+                          {post.profile_picture ? (
+                            <img
+                              src={post.profile_picture}
+                              alt={post.username}
+                              className="avatar-img"
+                            />
+                          ) : (
+                            post.username?.[0]?.toUpperCase() || "U"
+                          )}
                         </div>
                         <div className="post-meta">
                           <h3>{post.username || "Anonymous"}</h3>
@@ -327,7 +510,7 @@ export default function HomePage() {
                     </div>
                     <div className="post-actions">
                       <button
-                        className="action-btn like-btn"
+                        className={`action-btn like-btn ${userLikes[post.id] ? "active" : ""}`}
                         onClick={() => handleLike(post.id)}
                         disabled={!token}
                       >
@@ -335,7 +518,7 @@ export default function HomePage() {
                         <span className="count">{post.likes || 0}</span>
                       </button>
                       <button
-                        className="action-btn dislike-btn"
+                        className={`action-btn dislike-btn ${userDislikes[post.id] ? "active" : ""}`}
                         onClick={() => handleDislike(post.id)}
                         disabled={!token}
                       >
@@ -360,7 +543,15 @@ export default function HomePage() {
                           {comments[post.id]?.map((comment) => (
                             <div key={comment.id} className="comment">
                               <div className="comment-avatar">
-                                {comment.username?.[0]?.toUpperCase() || "U"}
+                                {comment.profile_picture ? (
+                                  <img
+                                    src={comment.profile_picture}
+                                    alt={comment.username}
+                                    className="avatar-img"
+                                  />
+                                ) : (
+                                  comment.username?.[0]?.toUpperCase() || "U"
+                                )}
                               </div>
                               <div className="comment-content">
                                 <span className="comment-author">
