@@ -7,6 +7,7 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (token) {
@@ -15,6 +16,7 @@ export function AuthProvider({ children }) {
     } else {
       localStorage.removeItem("token");
       setUser(null);
+      setLoading(false);
     }
   }, [token]);
 
@@ -29,6 +31,8 @@ export function AuthProvider({ children }) {
       }
     } catch (error) {
       console.error("Failed to fetch user:", error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -59,7 +63,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("token");
   };
 
-  const value = { token, user, register, login, logout };
+  const value = { token, user, loading, register, login, logout };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

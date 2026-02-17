@@ -3,6 +3,7 @@ import { useAuth } from "../auth/AuthContext";
 import { useParams, Link } from "react-router";
 import {
   getPostsByUserId,
+  getPostsFeed,
   getUserProfile,
   updateUserProfile,
   deletePost,
@@ -22,7 +23,7 @@ import { dummyUsers, dummyPosts } from "../data/dummyData";
 import "../styles/Profile.css";
 
 export default function Profile() {
-  const { user, token } = useAuth();
+  const { user, token, loading: authLoading } = useAuth();
   const { userId } = useParams();
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
@@ -46,6 +47,8 @@ export default function Profile() {
   const isOwnProfile = profile && user && profile.id === user.id;
 
   useEffect(() => {
+    // Reset follow state when userId changes
+    setIsFollowing(false);
     fetchProfileData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, user]);
@@ -67,13 +70,25 @@ export default function Profile() {
       );
 
       if (dummyUser) {
-        setProfile({
+        const dummyProfile = {
           id: dummyUser.id,
           username: dummyUser.username,
           name: dummyUser.name,
           bio: `${dummyUser.specialty} specialist in ${dummyUser.location}`,
-        });
+        };
+        setProfile(dummyProfile);
         setPosts(userPosts);
+
+        // Check follow status for dummy users too
+        if (token && user && dummyUser.id !== user.id) {
+          const following = await isFollowingUser(dummyUser.id, token);
+          console.log(
+            `Follow status check for dummy user ${dummyUser.id}, isFollowing:`,
+            following,
+          );
+          setIsFollowing(following);
+        }
+
         setLoading(false);
         return;
       }
@@ -81,7 +96,10 @@ export default function Profile() {
 
     const [profileData, userPosts] = await Promise.all([
       getUserProfile(targetUserId),
-      getPostsByUserId(targetUserId),
+      // Get posts based on whether viewing own profile or someone else's
+      user && targetUserId === user.id && token
+        ? getPostsFeed(targetUserId, token)
+        : getPostsByUserId(targetUserId),
     ]);
 
     setProfile(profileData);
@@ -100,12 +118,21 @@ export default function Profile() {
 
     // Check if current user is following this profile (if not own profile)
     if (!isViewingOwnProfile && token && profileData) {
+      console.log("Checking follow status for user:", profileData.id);
       const following = await isFollowingUser(profileData.id, token);
       console.log(
         `Follow status check: viewing user ${profileData.id}, isFollowing:`,
         following,
       );
+      console.log("Setting isFollowing state to:", following);
       setIsFollowing(following);
+      console.log("isFollowing state has been set");
+    } else {
+      console.log("Not checking follow status:", {
+        isViewingOwnProfile,
+        hasToken: !!token,
+        hasProfileData: !!profileData,
+      });
     }
 
     // If it's own profile, fetch following data
@@ -324,8 +351,7 @@ export default function Profile() {
     if (!token || !profile) return;
 
     console.log("Follow toggle - profile.id:", profile.id, "user.id:", user.id);
-    console.log("Types:", typeof profile.id, typeof user.id);
-    console.log("isOwnProfile:", isOwnProfile);
+    console.log("Current isFollowing state:", isFollowing);
 
     // Extra safety check: don't allow following yourself
     if (profile.id === user.id || parseInt(profile.id) === parseInt(user.id)) {
@@ -336,15 +362,27 @@ export default function Profile() {
 
     if (isFollowing) {
       const result = await unfollowUser(profile.id, token);
+      console.log("Unfollow result:", result);
       if (result) {
         setIsFollowing(false);
+        console.log("Set isFollowing to false");
       }
     } else {
       const result = await followUser(profile.id, token);
+      console.log("Follow result:", result);
       if (result) {
         setIsFollowing(true);
+        console.log("Set isFollowing to true");
       }
     }
+  }
+
+  if (authLoading) {
+    return (
+      <div className="container">
+        <div className="loading">Loading...</div>
+      </div>
+    );
   }
 
   if (!user) {
@@ -553,81 +591,100 @@ export default function Profile() {
                       View All
                     </Link>
                   </div>
-                  {followingUsers.length > 0 && (
-                    <div className="following-section">
-                      <h3>Users</h3>
-                      <div className="following-list">
-                        {followingUsers
-                          .filter((followedUser) => followedUser.id !== user.id)
-                          .map((followedUser) => (
+                  <div className="following-row-container">
+                    {followingUsers.length > 0 && (
+                      <div className="following-section">
+                        <h3>Users</h3>
+                        <div className="following-list">
+                          {followingUsers
+                            .filter(
+                              (followedUser) => followedUser.id !== user.id,
+                            )
+                            .map((followedUser) => (
+                              <Link
+                                key={followedUser.id}
+                                to={`/profile/${followedUser.id}`}
+                                className="following-item"
+                              >
+                                <div className="following-avatar">
+                                  {followedUser.profile_picture ? (
+                                    <img
+                                      src={followedUser.profile_picture}
+                                      alt={followedUser.username}
+                                    />
+                                  ) : (
+                                    followedUser.username?.[0]?.toUpperCase() ||
+                                    "U"
+                                  )}
+                                </div>
+                                <div className="following-info">
+                                  <span className="following-username">
+                                    {followedUser.username}
+                                  </span>
+                                  {followedUser.bio && (
+                                    <span className="following-bio">
+                                      {followedUser.bio.substring(0, 60)}
+                                      {followedUser.bio.length > 60
+                                        ? "..."
+                                        : ""}
+                                    </span>
+                                  )}
+                                </div>
+                              </Link>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                    {followedHospitals.length > 0 && (
+                      <div className="following-section">
+                        <h3>Hospitals</h3>
+                        <div className="following-list">
+                          {followedHospitals.map((hospital) => (
                             <Link
-                              key={followedUser.id}
-                              to={`/profile/${followedUser.id}`}
+                              key={hospital.hospital_id}
+                              to={`/hospital/${hospital.hospital_id}`}
                               className="following-item"
                             >
-                              <div className="following-avatar">
-                                {followedUser.profile_picture ? (
-                                  <img
-                                    src={followedUser.profile_picture}
-                                    alt={followedUser.username}
-                                  />
-                                ) : (
-                                  followedUser.username?.[0]?.toUpperCase() ||
-                                  "U"
-                                )}
+                              <div className="following-avatar hospital-avatar">
+                                🏥
                               </div>
                               <div className="following-info">
                                 <span className="following-username">
-                                  {followedUser.username}
+                                  {hospital.name || hospital.hospital_id}
                                 </span>
-                                {followedUser.bio && (
+                                {hospital.city && hospital.state && (
                                   <span className="following-bio">
-                                    {followedUser.bio.substring(0, 60)}
-                                    {followedUser.bio.length > 60 ? "..." : ""}
+                                    {hospital.city}, {hospital.state}
                                   </span>
                                 )}
                               </div>
                             </Link>
                           ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  {followedHospitals.length > 0 && (
-                    <div className="following-section">
-                      <h3>Hospitals</h3>
-                      <div className="following-list">
-                        {followedHospitals.map((hospital) => (
-                          <Link
-                            key={hospital.hospital_id}
-                            to={`/hospital/${hospital.hospital_id}`}
-                            className="following-item"
-                          >
-                            <div className="following-avatar hospital-avatar">
-                              🏥
-                            </div>
-                            <div className="following-info">
-                              <span className="following-username">
-                                {hospital.name || hospital.hospital_id}
-                              </span>
-                              {hospital.city && hospital.state && (
-                                <span className="following-bio">
-                                  {hospital.city}, {hospital.state}
-                                </span>
-                              )}
-                            </div>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               )}
 
             <div className="profile-card">
-              <h2>My Posts</h2>
+              <h2>
+                {isOwnProfile
+                  ? "My Feed"
+                  : `${profile?.username || "User"}'s Posts`}
+              </h2>
+              {isOwnProfile && posts.length > 0 && (
+                <p className="feed-description">
+                  Posts from you and people you follow
+                </p>
+              )}
               {posts.length === 0 ? (
                 <div className="empty-state">
-                  <p>You haven&apos;t posted anything yet</p>
+                  <p>
+                    {isOwnProfile
+                      ? "No posts yet. Start following users to see their posts here!"
+                      : "This user hasn't posted anything yet"}
+                  </p>
                 </div>
               ) : (
                 <div className="posts-grid">

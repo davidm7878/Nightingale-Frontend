@@ -99,8 +99,21 @@
   border: 1px solid var(--color-border);
 }
 
+.feed-description {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+  margin-bottom: 16px;
+}
+
+.following-row-container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
 .following-section {
-  margin-bottom: 24px;
+  margin-bottom: 0;
 }
 
 .following-section:last-child {
@@ -114,29 +127,34 @@
   color: var(--color-text-secondary);
 }
 
-.following-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.profile-page .following-list {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
 }
 
-.following-item {
+.profile-card .following-item {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: var(--color-background);
+  background: white !important;
   border-radius: var(--radius);
   text-decoration: none;
   color: inherit;
   transition: all 0.2s ease;
   border: 1px solid var(--color-border);
+  flex: 0 0 auto;
+  min-width: 280px;
+  max-width: 320px;
 }
 
-.following-item:hover {
-  background: var(--color-card);
+.profile-card .following-item:hover {
+  background: white !important;
   border-color: var(--color-primary);
-  transform: translateX(4px);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
 .following-avatar {
@@ -176,6 +194,7 @@
   font-size: 15px;
   color: var(--color-text);
   margin-bottom: 2px;
+  transition: color 0.2s ease;
 }
 
 .following-bio {
@@ -185,8 +204,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: color 0.2s ease;
 }
-
 
 .card-header {
   display: flex;
@@ -206,8 +225,6 @@
 
 .bio {
   font-size: 15px;
-  line-height: 1.5;
-  margin-bottom: 16
   line-height: 1.7;
   margin-bottom: 24px;
   color: var(--color-text);
@@ -298,7 +315,7 @@
 }
 
 .upload-divider::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   right: 0;
@@ -361,11 +378,6 @@
   display: flex;
   gap: 12px;
 }
-2px;
-  background: var(--color-background);
-  border-radius: 6px;
-  border-left: 3px solid var(--color-primary);
-}
 
 .post-item .post-date {
   font-size: 12px;
@@ -390,28 +402,15 @@
 .stats-card h3 {
   margin-bottom: 16px;
   font-size: 17px;
-  font-weight: 700
-  background: var(--color-background);
-  border-radius: var(--radius);
-  padding: 24px;
-  box-shadow: var(--shadow-sm);
-}
-
-.stats-card h3 {
-  margin-bottom: 24px;
+  font-weight: 700;
 }
 
 .stat {
   display: flex;
   justify-content: space-between;
-  align-items: center;secondary);
-  font-size: 14px;
+  align-items: center;
+  margin-bottom: 12px;
 }
-
-.stat-value {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--color-text
 
 .stat-label {
   color: var(--color-text-light);
@@ -446,6 +445,11 @@
 
   .profile-info h1 {
     font-size: 32px;
+  }
+
+  .profile-card .following-item {
+    min-width: 100%;
+    max-width: 100%;
   }
 }
 
@@ -624,7 +628,7 @@
   display: flex;
   gap: 12px;
   padding: 8px;
-  background: var(--color-background);
+  background: white;
   border-radius: var(--radius);
 }
 

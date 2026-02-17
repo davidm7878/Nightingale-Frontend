@@ -121,6 +121,21 @@ export async function getPostsByUserId(userId) {
   }
 }
 
+export async function getPostsFeed(userId, token) {
+  try {
+    const response = await fetch(`${API}/posts/feed/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw new Error("Failed to fetch posts feed");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching posts feed:", error);
+    return [];
+  }
+}
+
 export async function createPost(body, token) {
   try {
     const response = await fetch(`${API}/posts`, {
@@ -305,6 +320,19 @@ export async function updateUserProfile(userData, token) {
   }
 }
 
+export async function searchUsers(query) {
+  try {
+    const response = await fetch(
+      `${API}/users/search?query=${encodeURIComponent(query)}`,
+    );
+    if (!response.ok) throw new Error("Failed to search users");
+    return await response.json();
+  } catch (error) {
+    console.error("Error searching users:", error);
+    return [];
+  }
+}
+
 // Rating API Functions
 export async function getRatingsByHospitalId(hospitalId) {
   try {
@@ -393,8 +421,14 @@ export async function followUser(userId, token) {
         Authorization: `Bearer ${token}`,
       },
     });
-    if (!response.ok) throw new Error("Failed to follow user");
-    return await response.json();
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("Follow failed:", error);
+      throw new Error(error.message || "Failed to follow user");
+    }
+    const result = await response.json();
+    console.log("Follow API response:", result);
+    return result;
   } catch (error) {
     console.error("Error following user:", error);
     return null;
@@ -419,13 +453,19 @@ export async function unfollowUser(userId, token) {
 
 export async function isFollowingUser(userId, token) {
   try {
+    console.log(`Checking follow status for user ${userId}`);
     const response = await fetch(`${API}/users/${userId}/is-following`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    if (!response.ok) throw new Error("Failed to check follow status");
+    if (!response.ok) {
+      console.error("Failed to check follow status, response not ok");
+      throw new Error("Failed to check follow status");
+    }
     const data = await response.json();
+    console.log("Follow status API response:", data);
+    console.log("isFollowing value:", data.isFollowing);
     return data.isFollowing;
   } catch (error) {
     console.error("Error checking follow status:", error);

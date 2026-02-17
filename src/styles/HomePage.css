@@ -363,7 +363,7 @@
   display: flex;
   gap: 12px;
   padding: 8px;
-  background: var(--color-background);
+  background: white;
   border-radius: var(--radius);
 }
 

@@ -4,16 +4,20 @@ import {
   searchHospitalsByCityState,
   searchHospitalsByName,
   searchHospitalsByZipcode,
+  searchUsers,
 } from "../api/apicalls";
 import "../styles/HospitalSearch.css";
 
 export default function HospitalSearch() {
   const [searchType, setSearchType] = useState("location");
+  const [searchCategory, setSearchCategory] = useState("hospitals");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [zipcode, setZipcode] = useState("");
   const [name, setName] = useState("");
+  const [userQuery, setUserQuery] = useState("");
   const [results, setResults] = useState([]);
+  const [userResults, setUserResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
@@ -193,6 +197,21 @@ export default function HospitalSearch() {
   async function handleSearch(e) {
     e.preventDefault();
 
+    if (searchCategory === "users") {
+      if (!userQuery.trim()) {
+        alert("Please enter a username or email to search");
+        return;
+      }
+      setLoading(true);
+      setSearched(true);
+      const data = await searchUsers(userQuery);
+      setUserResults(data);
+      setResults([]);
+      setLoading(false);
+      return;
+    }
+
+    // Hospital search logic
     // Make sure that at least one search field is filled
     if (searchType === "location" && !city && !state && !zipcode) {
       alert("Please enter a zip code, city, and/or state to search");
@@ -226,6 +245,7 @@ export default function HospitalSearch() {
     }
 
     setResults(data);
+    setUserResults([]);
     setLoading(false);
   }
 
@@ -240,29 +260,59 @@ export default function HospitalSearch() {
         <div className="search-card">
           <div className="search-hero">
             <div className="container">
-              <h1>Find Healthcare Facilities</h1>
+              <h1>Search</h1>
               <p className="subtitle">
-                Search thousands of hospitals and medical centers nationwide
+                Find healthcare facilities and connect with professionals
               </p>
             </div>
           </div>
+
           <div className="search-tabs">
             <button
-              className={`tab ${searchType === "location" ? "active" : ""}`}
-              onClick={() => setSearchType("location")}
+              className={`tab ${searchCategory === "hospitals" ? "active" : ""}`}
+              onClick={() => setSearchCategory("hospitals")}
             >
-              Search by Location
+              Hospitals
             </button>
             <button
-              className={`tab ${searchType === "name" ? "active" : ""}`}
-              onClick={() => setSearchType("name")}
+              className={`tab ${searchCategory === "users" ? "active" : ""}`}
+              onClick={() => setSearchCategory("users")}
             >
-              Search by Name
+              Users
             </button>
           </div>
 
+          {searchCategory === "hospitals" && (
+            <div className="search-tabs">
+              <button
+                className={`tab ${searchType === "location" ? "active" : ""}`}
+                onClick={() => setSearchType("location")}
+              >
+                Search by Location
+              </button>
+              <button
+                className={`tab ${searchType === "name" ? "active" : ""}`}
+                onClick={() => setSearchType("name")}
+              >
+                Search by Name
+              </button>
+            </div>
+          )}
+
           <form onSubmit={handleSearch} className="search-form">
-            {searchType === "location" ? (
+            {searchCategory === "users" ? (
+              <div className="form-group">
+                <label htmlFor="userQuery">Username or Email</label>
+                <input
+                  id="userQuery"
+                  type="text"
+                  value={userQuery}
+                  onChange={(e) => setUserQuery(e.target.value)}
+                  placeholder="Search for users..."
+                  required
+                />
+              </div>
+            ) : searchType === "location" ? (
               <>
                 <div className="location-actions">
                   <button
@@ -337,11 +387,58 @@ export default function HospitalSearch() {
         {searched && (
           <div className="results-section">
             <h2 className="results-title">
-              {results.length} {results.length === 1 ? "Result" : "Results"}
+              {searchCategory === "users"
+                ? `${userResults.length} ${userResults.length === 1 ? "User" : "Users"}`
+                : `${results.length} ${results.length === 1 ? "Result" : "Results"}`}
             </h2>
 
             {loading ? (
-              <div className="loading">Searching hospitals...</div>
+              <div className="loading">
+                {searchCategory === "users"
+                  ? "Searching users..."
+                  : "Searching hospitals..."}
+              </div>
+            ) : searchCategory === "users" ? (
+              userResults.length === 0 ? (
+                <div className="empty-state">
+                  <p>No users found. Try adjusting your search.</p>
+                </div>
+              ) : (
+                <div className="results-grid">
+                  {userResults.map((user) => (
+                    <Link
+                      key={user.id}
+                      to={`/profile/${user.id}`}
+                      className="hospital-card-link"
+                    >
+                      <div className="hospital-card user-card">
+                        <div className="user-card-header">
+                          <div className="user-avatar">
+                            {user.profile_picture ? (
+                              <img
+                                src={user.profile_picture}
+                                alt={user.username}
+                                className="avatar-img"
+                              />
+                            ) : (
+                              user.username?.[0]?.toUpperCase() || "U"
+                            )}
+                          </div>
+                          <div className="user-info">
+                            <h3>{user.username}</h3>
+                            <p className="user-email">{user.email}</p>
+                          </div>
+                        </div>
+                        {user.bio && <p className="user-bio">{user.bio}</p>}
+                        <p className="user-joined">
+                          Joined{" "}
+                          {new Date(user.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )
             ) : results.length === 0 ? (
               <div className="empty-state">
                 <p>No hospitals found. Try adjusting your search.</p>
