@@ -97,9 +97,6 @@ export default function HospitalDetails() {
     if (result) {
       setReviews([result, ...reviews]);
       setReviewText("");
-      alert("Review submitted successfully!");
-    } else {
-      alert("Failed to submit review.");
     }
     setSubmitting(false);
   }
