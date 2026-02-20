@@ -600,6 +600,7 @@ export default function Profile() {
                             .filter(
                               (followedUser) => followedUser.id !== user.id,
                             )
+                            .slice(0, 3)
                             .map((followedUser) => (
                               <Link
                                 key={followedUser.id}
@@ -639,7 +640,7 @@ export default function Profile() {
                       <div className="following-section">
                         <h3>Hospitals</h3>
                         <div className="following-list">
-                          {followedHospitals.map((hospital) => (
+                          {followedHospitals.slice(0, 3).map((hospital) => (
                             <Link
                               key={hospital.hospital_id}
                               to={`/hospital/${hospital.hospital_id}`}
