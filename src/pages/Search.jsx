@@ -430,10 +430,6 @@ export default function HospitalSearch() {
                           </div>
                         </div>
                         {user.bio && <p className="user-bio">{user.bio}</p>}
-                        <p className="user-joined">
-                          Joined{" "}
-                          {new Date(user.created_at).toLocaleDateString()}
-                        </p>
                       </div>
                     </Link>
                   ))}
